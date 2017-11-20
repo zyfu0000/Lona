@@ -102,16 +102,7 @@ async function main() {
           logic
         );
 
-        const output =
-          writer.generateImports() + writer.generateReactComponentClass();
-
-        console.log(prettier.format(output));
-
-        // const context = createContext(componentFile.rootLayer);
-
-        // console.log(context);
-
-        // fse.readFile
+        const output = prettier.format(writer.generateComponentFile());
 
         // const code = convert(file, {
         //   primitives: program.primitives,
@@ -135,8 +126,8 @@ async function main() {
         //   fse.writeFile(componentOutputPath, component);
         // }
 
-        // await fse.mkdirp(path.dirname(outputPath));
-        // fse.writeFile(outputPath, code);
+        await fse.mkdirp(path.dirname(outputPath));
+        fse.writeFile(outputPath, output);
       });
   });
 }

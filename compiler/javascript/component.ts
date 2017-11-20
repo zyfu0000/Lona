@@ -62,8 +62,6 @@ export class Component {
       // TODO: Remove when we have all components and throw an error instead
       .filter(x => !!x);
 
-    console.log("creating", layer.type);
-
     switch (layer.type) {
       case "View": {
         const {

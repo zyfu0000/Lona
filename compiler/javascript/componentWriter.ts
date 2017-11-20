@@ -78,7 +78,7 @@ export class ComponentWriter {
   }
 
   generateComponentJSX = (component: Component, parent?: ParentComponent) => {
-    console.log("comp", component);
+    // console.log("comp", component);
 
     function generateJSX(element: Element) {
       const props = element.jsxAttributes
@@ -119,24 +119,57 @@ export class ComponentWriter {
     return jsx.openingTag + content + jsx.closingTag;
   };
 
+  generateLogic(): string {
+    const parametersAccessed = this.logic.parametersAccessed(
+      this.logic.invocations
+    );
+
+    let parametersDestructureCode = "";
+
+    if (parametersAccessed.length > 0) {
+      parametersDestructureCode = `
+        let {${parametersAccessed.join(", ")}} = this.parameters;
+      `;
+    }
+
+    return parametersDestructureCode + this.logic.toCode().join("\n");
+  }
+
   generateImports(): string {
     return `
       import React from 'react'
       import PropTypes from 'prop-types'
       import { View, Text, Image, StyleSheet } from 'react-native'
+
     `;
   }
 
   generateReactComponentClass(): string {
-    return `class ${this.name} extends React.Component {
-      ${this.generatePropTypes(this.parameters)}
-      ${this.generateDefaultProps(this.parameters)}
+    return `
+      class ${this.name} extends React.Component {
+        ${this.generatePropTypes(this.parameters)}
+        ${this.generateDefaultProps(this.parameters)}
 
-      render() {
-        return (
-          ${this.generateComponentJSX(this.rootComponent)}
-        )
+        render() {
+          ${this.generateLogic()}
+
+          return (
+            ${this.generateComponentJSX(this.rootComponent)}
+          )
+        }
       }
-    }`;
+    `;
+  }
+
+  generateStyleSheet(): string {
+    return "const styles = StyleSheet.create({})";
+  }
+
+  generateComponentFile(): string {
+    return [
+      this.generateImports(),
+      this.generateReactComponentClass(),
+      this.generateStyleSheet()
+    ].join("\n");
   }
 }

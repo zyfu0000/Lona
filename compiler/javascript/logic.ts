@@ -7,6 +7,7 @@ import {
   LogicIdentifierParameter,
   getLogicParameterName
 } from "./file";
+import { identifier } from "babel-types";
 
 interface LogicFunctionParameter {
   label?: string;
@@ -41,7 +42,7 @@ const LogicAssignFunction: LogicFunction = {
   toCode(node: LogicNode): string {
     const { function: { arguments: { lhs, rhs } } } = node;
 
-    return `${getLogicParameterName(rhs)} = ${getLogicParameterName(lhs)}`;
+    return `${getLogicParameterName(rhs)} = ${getLogicParameterName(lhs)};`;
   }
 };
 
@@ -86,6 +87,31 @@ export class Logic {
     });
   }
 
+  parametersAccessed(invocations: LogicInvocation[]) {
+    const parametersForInvocation = (invocation: LogicInvocation) => {
+      const {
+        func: { parameters } = { parameters: {} },
+        node: { function: { arguments: args } }
+      } = invocation;
+
+      const identifiers = Object.keys(parameters)
+        .filter(key => args[key].type == "identifier")
+        .map(key => args[key]) as LogicIdentifierParameter[];
+
+      return identifiers
+        .filter(identifier => {
+          return identifier.value.path[0] === "parameters";
+        })
+        .map(identifier => identifier.value.path[1]);
+    };
+
+    const parameters = invocations.map(invocation =>
+      parametersForInvocation(invocation)
+    );
+
+    return _.union(_.flatten(parameters));
+  }
+
   mutationsForBlock(invocations: LogicInvocation[]) {
     const mutationsForInvocation = (invocation: LogicInvocation) => {
       const {
@@ -105,12 +131,15 @@ export class Logic {
       mutationsForInvocation(invocation)
     );
 
-    return _.flatten(mutations);
+    return _.union(_.flatten(mutations));
   }
 
   toCode() {
     return this.invocations.map(invocation => {
       const { func, node } = invocation;
+
+      if (!func) return "undefined";
+
       return func.toCode(node);
     });
   }

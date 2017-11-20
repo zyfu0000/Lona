@@ -55,7 +55,11 @@ export type LogicParameter = LogicValueParameter | LogicIdentifierParameter;
 export function getLogicParameterName(parameter: LogicParameter) {
   switch (parameter.type) {
     case "identifier":
-      return parameter.value.path.join(".");
+      return parameter.value.path
+        .map(part => {
+          return part.replace(" ", "_");
+        })
+        .join(".");
     case "value":
       return JSON.stringify(parameter.value.data);
   }
