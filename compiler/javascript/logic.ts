@@ -8,6 +8,7 @@ import {
   getLogicParameterName
 } from "./file";
 import { identifier } from "babel-types";
+import { DependencyGraph } from "./DependencyGraph";
 
 interface LogicFunctionParameter {
   label?: string;
@@ -86,6 +87,10 @@ export class Logic {
       );
     });
   }
+
+  // getDependencyGraph(): DependencyGraph {
+  //   this.invocations.map(invocation => {});
+  // }
 
   parametersAccessed(invocations: LogicInvocation[]) {
     const parametersForInvocation = (invocation: LogicInvocation) => {

@@ -12,6 +12,7 @@ import { createContext } from "./context";
 import { Component } from "./component.js";
 import { ComponentWriter } from "./componentWriter";
 import { basename } from "path";
+import { DependencyGraph } from "./DependencyGraph";
 
 const glob = require("glob");
 const path = require("path-extra");
