@@ -1,0 +1,24 @@
+{
+  "name": "lona-compiler",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/commander": "^2.11.0",
+    "babylon": "^6.18.0",
+    "commander": "^2.11.0",
+    "fs-extra": "^4.0.2",
+    "glob": "^7.1.2",
+    "jscodeshift": "^0.3.32",
+    "lodash": "^4.17.4",
+    "path-extra": "^4.2.1",
+    "prettier": "^1.8.2"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^4.0.5",
+    "@types/glob": "^5.0.33",
+    "@types/lodash": "^4.14.85",
+    "@types/node": "^8.0.53",
+    "@types/prettier": "^1.8.0"
+  }
+}
