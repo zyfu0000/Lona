@@ -6,6 +6,7 @@ export type Element = {
   tag: string;
   jsxAttributes: { name: string; value: string }[];
   styleAttributes: { name: string; value: string }[];
+  content?: string;
 };
 
 export type DimensionSize = "Fill" | "FitContent" | number;
@@ -36,6 +37,11 @@ export interface ViewParameters extends LayoutParentParameters {
   backgroundColor?: string;
 }
 
+export interface TextParameters extends LayoutParameters {
+  textStyle?: string;
+  value?: string;
+}
+
 export class Component {
   name: string;
   visible: boolean;
@@ -44,7 +50,7 @@ export class Component {
   //   throw new Error(`Component.toCode() not implemented for ${this.name}.`);
   // }
 
-  toElement(): Element {
+  toElement(parent?: ParentComponent): Element {
     throw new Error(`Component.toElement() not implemented for ${this.name}.`);
   }
 
@@ -56,8 +62,10 @@ export class Component {
       // TODO: Remove when we have all components and throw an error instead
       .filter(x => !!x);
 
+    console.log("creating", layer.type);
+
     switch (layer.type) {
-      case "View":
+      case "View": {
         const {
           flexDirection = "column",
           marginTop = 0,
@@ -93,6 +101,33 @@ export class Component {
         };
 
         return new ViewComponent(name, visible, parameters, childrenComponents);
+      }
+
+      case "Text": {
+        const {
+          marginTop = 0,
+          marginRight = 0,
+          marginBottom = 0,
+          marginLeft = 0,
+          font = null,
+          text = null
+        } = layer.parameters;
+
+        const parameters: TextParameters = {
+          verticalSize: heightSizingRule(layer, parent),
+          horizontalSize: widthSizingRule(layer, parent),
+          margin: {
+            top: marginTop,
+            right: marginRight,
+            bottom: marginBottom,
+            left: marginLeft
+          },
+          textStyle: font,
+          value: text
+        };
+
+        return new TextComponent(name, visible, parameters);
+      }
     }
   }
 }
@@ -123,7 +158,7 @@ export class ViewComponent extends ParentComponent {
   }
 
   // TODO: How to handle dynamic overrides
-  toElement(): Element {
+  toElement(parent?: ParentComponent): Element {
     const {
       verticalSize,
       horizontalSize,
@@ -159,6 +194,63 @@ export class ViewComponent extends ParentComponent {
       (isStyle ? styleAttributes : jsxAttributes).push({ name, value });
     }
 
+    const parentDirection = parent
+      ? (<ViewComponent>parent).parameters.direction
+      : "Column";
+
+    switch (parentDirection) {
+      case "Row":
+        switch (verticalSize) {
+          case "Fill": {
+            addAttribute("alignSelf", "stretch", "flex-start", true);
+            break;
+          }
+          case "FitContent":
+            break;
+          default: {
+            addAttribute("height", verticalSize, 0, true);
+          }
+        }
+        switch (horizontalSize) {
+          case "Fill": {
+            addAttribute("flex", 1, 0, true);
+            break;
+          }
+          case "FitContent":
+            break;
+          default: {
+            addAttribute("width", horizontalSize, 0, true);
+          }
+        }
+
+        break;
+      case "Column":
+        switch (verticalSize) {
+          case "Fill": {
+            addAttribute("flex", 1, 0, true);
+            break;
+          }
+          case "FitContent":
+            break;
+          default: {
+            addAttribute("height", verticalSize, 0, true);
+          }
+        }
+        switch (horizontalSize) {
+          case "Fill": {
+            addAttribute("alignSelf", "stretch", "flex-start", true);
+            break;
+          }
+          case "FitContent":
+            break;
+          default: {
+            addAttribute("width", horizontalSize, 0, true);
+          }
+        }
+
+        break;
+    }
+
     addAttribute("paddingTop", paddingTop, 0, true);
     addAttribute("paddingRight", paddingRight, 0, true);
     addAttribute("paddingBottom", paddingBottom, 0, true);
@@ -169,22 +261,65 @@ export class ViewComponent extends ParentComponent {
     addAttribute("marginLeft", marginLeft, 0, true);
     addAttribute("backgroundColor", backgroundColor, null, true);
 
-    // const attributeCode = jsxAttributes
-    //   .map(jsxAttribute => {
-    //     const { name, value } = jsxAttribute;
-
-    //     return `${name}=${"{" + JSON.stringify(value) + "}"}`;
-    //   })
-    //   .join(" ");
-
-    // const childrenCode = this.children.map(child => child.toCode());
-
     return {
-      tag: this.name,
+      tag: "View",
       jsxAttributes,
       styleAttributes
     };
   }
 }
 
-export class TextComponent extends Component {}
+export class TextComponent extends Component {
+  parameters: TextParameters;
+
+  constructor(name: string, visible: boolean, parameters: TextParameters) {
+    super();
+
+    this.name = name;
+    this.visible = visible;
+    this.parameters = parameters;
+  }
+
+  // TODO: How to handle dynamic overrides
+  toElement(parent?: ParentComponent): Element {
+    const {
+      verticalSize,
+      horizontalSize,
+      margin: {
+        top: marginTop,
+        right: marginRight,
+        bottom: marginBottom,
+        left: marginLeft
+      },
+      textStyle,
+      value
+    } = this.parameters;
+
+    const styleAttributes: { name: string; value: any }[] = [];
+    const jsxAttributes: { name: string; value: any }[] = [];
+
+    function addAttribute(
+      name: string,
+      value: any,
+      defaultValue: any,
+      isStyle: boolean
+    ) {
+      if (value === defaultValue) return;
+
+      (isStyle ? styleAttributes : jsxAttributes).push({ name, value });
+    }
+
+    addAttribute("marginTop", marginTop, 0, true);
+    addAttribute("marginRight", marginRight, 0, true);
+    addAttribute("marginBottom", marginBottom, 0, true);
+    addAttribute("marginLeft", marginLeft, 0, true);
+    // addAttribute("font", textStyle, null, true);
+
+    return {
+      tag: "Text",
+      jsxAttributes,
+      styleAttributes,
+      content: value
+    };
+  }
+}

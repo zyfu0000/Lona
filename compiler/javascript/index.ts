@@ -95,12 +95,15 @@ async function main() {
 
         // logic.print();
 
-        const output = new ComponentWriter(
+        const writer = new ComponentWriter(
           path.removeExt(path.basename(file)),
           componentFile.parameters,
           rootComponent,
           logic
-        ).generateReactComponentClass();
+        );
+
+        const output =
+          writer.generateImports() + writer.generateReactComponentClass();
 
         console.log(prettier.format(output));
 

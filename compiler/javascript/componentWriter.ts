@@ -77,7 +77,9 @@ export class ComponentWriter {
     return `static defaultProps = {\n${indent(defaultProps, 1)}\n}`;
   }
 
-  generateComponentJSX(component: Component) {
+  generateComponentJSX = (component: Component, parent?: ParentComponent) => {
+    console.log("comp", component);
+
     function generateJSX(element: Element) {
       const props = element.jsxAttributes
         .map(({ name, value }) => {
@@ -102,13 +104,20 @@ export class ComponentWriter {
       };
     }
 
-    const jsx = generateJSX(component.toElement());
-    const childrenJSX = ParentComponent.isParentComponent(component)
-      ? component.children.map(this.generateComponentJSX).join("\n")
-      : "";
+    const element = component.toElement(parent);
+    const jsx = generateJSX(element);
 
-    return jsx.openingTag + childrenJSX + jsx.closingTag;
-  }
+    let content = "";
+    if (ParentComponent.isParentComponent(component)) {
+      content = component.children
+        .map(child => this.generateComponentJSX(child))
+        .join("\n");
+    } else if (element.content) {
+      content = `{${JSON.stringify(element.content)}}`;
+    }
+
+    return jsx.openingTag + content + jsx.closingTag;
+  };
 
   generateImports(): string {
     return `
