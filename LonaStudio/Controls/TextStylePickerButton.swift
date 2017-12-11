@@ -31,7 +31,9 @@ class TextStylePickerButton: NSButton, CSControl {
     }
     
     func setButtonTitle(value: String) {
-        attributedTitle = CSTypography.getFontBy(id: value).font.apply(to: value)
+        // Make sure font size is suitable with textField but keeping another attribute
+        let copy = CSTypography.getFontBy(id: value).font.copy() as! AttributedFont
+        attributedTitle = smallSizeAttributeText(with: copy)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -45,28 +47,28 @@ class TextStylePickerButton: NSButton, CSControl {
     }
     
     func showPopover() {
-        let textStylePickerView = TextStylePickerView()
-        
-        let vc = NSViewController()
-        vc.view = textStylePickerView
-        
+        let picker = TextStylePickerView(selectedID: data.string!)
         let popover = NSPopover()
-        popover.contentSize = textStylePickerView.frame.size
         popover.behavior = .transient
         popover.animates = false
-        popover.contentViewController = vc
-        
+        popover.contentViewController = picker.embeddedViewController()
+        popover.contentSize = picker.bounds.size
         popover.show(relativeTo: NSRect.zero, of: self, preferredEdge: .maxY)
-        
-        textStylePickerView.onClickFont = { textStyle in
+        picker.onClickFont = { [weak self ] textStyle in
+            guard let strongSelf = self else { return }
             popover.close()
-            self.value = textStyle.id
-            self.onChange(self.value)
-            self.onChangeData(self.data)
+            strongSelf.value = textStyle.id
+            strongSelf.onChange(strongSelf.value)
+            strongSelf.onChangeData(strongSelf.data)
         }
     }
     
     func handleClick() {
         showPopover()
+    }
+    
+    private func smallSizeAttributeText(with csFont: AttributedFont) -> NSAttributedString {
+        csFont.fontSize = 14
+        return csFont.apply(to: value)
     }
 }

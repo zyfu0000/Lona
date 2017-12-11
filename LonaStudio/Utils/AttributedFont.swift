@@ -11,7 +11,7 @@ public enum AttributedFontWeight: Int {
 public class AttributedFont {
     
     public let fontFamily: String
-    public let fontSize: CGFloat
+    public var fontSize: CGFloat
     public let lineHeight: CGFloat
     public let kerning: Double
     public let weight: AttributedFontWeight
@@ -27,7 +27,7 @@ public class AttributedFont {
         weight: AttributedFontWeight,
         color: NSColor = NSColor.black,
         textAlignment: NSTextAlignment = .left,
-        lineBreakMode: NSLineBreakMode = .byWordWrapping)
+        lineBreakMode: NSLineBreakMode = .byTruncatingTail)
     {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
@@ -87,5 +87,17 @@ public class AttributedFont {
             NSParagraphStyleAttributeName: paragraphStyle
         ]
     }
-    
+}
+
+extension AttributedFont: NSCopying {
+    public func copy(with zone: NSZone? = nil) -> Any {
+        let copy = AttributedFont(fontFamily: fontFamily,
+                                  fontSize: fontSize,
+                                  lineHeight: lineHeight,
+                                  kerning: kerning,
+                                  weight: weight,
+                                  textAlignment: textAlignment,
+                                  lineBreakMode: lineBreakMode)
+        return copy
+    }
 }
