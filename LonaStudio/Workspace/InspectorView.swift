@@ -53,6 +53,10 @@ class InspectorView: NSStackView {
         case backgroundColorEnabled
         case backgroundGradient
         
+        // Shadow
+        case shadowEnabled
+        case shadow
+        
         // Text
         case text
         case textStyle
@@ -84,6 +88,7 @@ class InspectorView: NSStackView {
     var textSection: DisclosureContentRow!
     var imageSection: DisclosureContentRow!
     var animationSection: DisclosureContentRow!
+    var shadowSection: DisclosureContentRow!
     
     var directionView = PopupField(
         frame: NSRect.zero,
@@ -136,6 +141,9 @@ class InspectorView: NSStackView {
     var borderColorButton = ColorPickerButton(frame: NSRect.zero)
     var borderColorEnabledView = CheckboxField(frame: NSRect.zero)
     var borderRadiusView = NumberField(frame: NSRect.zero)
+    var shadowEnabledView = CheckboxField(frame: NSRect.zero)
+    var shadowButton = ShadowStylePickerButton(frame: NSRect.zero)
+    
     var textStyleView = TextStylePickerButton(frame: NSRect.zero)
     var numberOfLinesView = NumberField(frame: NSRect.zero)
     
@@ -501,6 +509,23 @@ class InspectorView: NSStackView {
         return backgroundSection
     }
     
+    func renderShadowSection() -> DisclosureContentRow {
+        shadowEnabledView.imagePosition = .imageOnly
+        
+        let shadowContainer = NSStackView(
+            views: [
+                shadowEnabledView,
+                shadowButton,
+                ],
+            orientation: .horizontal,
+            stretched: true
+        )
+        
+        let backgroundSection = renderSection(title: "Shadow", views: [shadowContainer])
+        backgroundSection.isHidden = true
+        return backgroundSection
+    }
+    
     func renderTextSection() -> DisclosureContentRow {
         textView.usesSingleLineMode = false
         
@@ -618,6 +643,7 @@ class InspectorView: NSStackView {
         textSection = renderTextSection()
         imageSection = renderImageSection()
         animationSection = renderAnimationSection()
+        shadowSection = renderShadowSection()
         
         let sections = [
             layoutSection!,
@@ -627,6 +653,7 @@ class InspectorView: NSStackView {
             renderSpacingSection(),
             renderBorderSection(),
             renderBackgroundSection(),
+            shadowSection!,
             imageSection!,
             animationSection!
         ]
@@ -665,6 +692,7 @@ class InspectorView: NSStackView {
         case "Text":
             textSection.isHidden = false
             layoutSection.isHidden = true
+            shadowSection.isHidden = false
         case "Image":
             imageSection.isHidden = false
         case "Animation":
@@ -711,6 +739,10 @@ class InspectorView: NSStackView {
             (backgroundColorButton, .backgroundColor),
             (backgroundColorEnabledView, .backgroundColorEnabled),
             (backgroundGradientView, .backgroundGradient),
+            
+            // Shadow
+            (shadowButton, .shadow),
+            (shadowEnabledView, .shadowEnabled),
             
             // Text
             (textView, .text),
@@ -782,6 +814,12 @@ class InspectorView: NSStackView {
         case .borderColorEnabled:
             if self.value[property]?.bool == false {
                 self.borderColorButton.value = "transparent"
+            }
+        case .shadow:
+            self.shadowEnabledView.value = true
+        case .shadowEnabled:
+            if self.value[property]?.bool == false {
+                self.shadowButton.value = CSShadows.defaultName
             }
         case .image:
             if let value = self.value[property]?.string {
