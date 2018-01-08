@@ -1,3 +1,71 @@
+module Swift = {
+  type accessLevelModifier =
+    | PrivateModifier
+    | FileprivateModifier
+    | InternalModifier
+    | PublicModifier
+    | OpenModifier;
+  type mutationModifier =
+    | MutatingModifier
+    | NonmutatingModifier;
+  type declarationModifier =
+    | ClassModifier
+    | ConvenienceModifier
+    | DynamicModifier
+    | FinalModifier
+    | InfixModifier
+    | LazyModifier
+    | OptionalModifier
+    | OverrideModifier
+    | PostfixModifier
+    | PrefixModifier
+    | RequiredModifier
+    | StaticModifier
+    | UnownedModifier
+    | UnownedSafeModifier
+    | UnownedUnsafeModifier
+    | WeakModifier
+    | AccessLevelModifier(accessLevelModifier)
+    | MutationModifier(mutationModifier);
+  type literal =
+    | Nil
+    | Boolean(bool)
+    | Integer(int)
+    | FloatingPoint(float)
+    | String(string)
+    | Color(string)
+  and typeAnnotation =
+    | TypeName(string)
+    | TypeIdentifier({. "name": typeAnnotation, "member": typeAnnotation})
+    | ArrayType({. "element": typeAnnotation})
+    | DictionaryType({. "key": typeAnnotation, "value": typeAnnotation})
+    | OptionalType({. "value": typeAnnotation})
+    | TypeInheritanceList({. "list": list(typeAnnotation)})
+  and pattern =
+    | WildcardPattern
+    | IdentifierPattern(string)
+    | ValueBindingPattern({. "kind": string, "pattern": pattern})
+    | TuplePattern({. "elements": list(pattern)})
+    | OptionalPattern({. "value": pattern})
+    | ExpressionPattern({. "value": node})
+  /* | IsPattern */
+  /* | AsPattern */
+  and node =
+    /* | Operator(string) */
+    | LiteralExpression(literal)
+    | ClassDeclaration({. "name": string, "body": list(node)})
+    /* | VariableDeclaration({. "pattern": pattern, "init": option(node)}) */
+    | SwiftIdentifier(string)
+    | ConstantDeclaration(
+        {. "modifiers": list(declarationModifier), "pattern": pattern, "init": option(node)}
+      )
+    | ImportDeclaration(string)
+    | FunctionCallArgument({. "name": option(node), "value": node})
+    | FunctionCallExpression({. "name": node, "arguments": list(node)})
+    | LineComment({. "comment": string, "line": node})
+    | TopLevelDeclaration({. "statements": list(node)});
+};
+
 module JavaScript = {
   type binaryOperator =
     | Eq
